@@ -1,0 +1,37 @@
+# UPDATED by Jacoby Baker 7-21-17
+
+# Script for running multiple Trimmomatic processes in the background
+
+# *****Dependent on the amount of CPU you have****
+
+# Create a directory with the Illumina Adapters with nano
+# nano Illumina_Adapters.fasta
+# >IlluminaAdapterSeq1
+# AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+# >IlluminaAdapterSeq2
+# AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+# You can run one loop running per CPU you have. If you are limited by the amount of CPU you will have to adjust the [     ]*_R1_*.fastq.gz command to limit the amount of loops
+
+for filename in *_R1_*.fastq.gz
+do
+# first, make the base by removing fastq.gz
+  base=$(basename $filename .fastq.gz)
+  echo $base
+        
+# now, construct the R2 filename by replacing R1 with R2
+  baseR2=${base/_R1_/_R2_}
+  echo $baseR2
+        
+# finally, run Trimmomatic
+  TrimmomaticPE ${base}.fastq.gz ${baseR2}.fastq.gz \
+    ${base}.qc.fq.gz ${base}_s1_se \
+    ${baseR2}.qc.fq.gz ${baseR2}_s2_se \
+    ILLUMINACLIP:Illumina_Adapters.fasta:2:40:15 \
+    LEADING:2 TRAILING:2 \
+    SLIDINGWINDOW:4:2 \
+    MINLEN:25 &
+    
+done
+
+# make sure the orphans directory is created out of the loop
